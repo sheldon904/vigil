@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ingest-service
+  kafka:
+    # Overridden by the KAFKA_BOOTSTRAP_SERVERS env var inside docker compose.
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      # Wait for all in-sync replicas and deduplicate retries on the broker.
+      acks: all
+      properties:
+        enable.idempotence: true
+        # Consumers declare their own target type, so type headers are noise.
+        spring.json.add.type.headers: false
+
+vigil:
+  ingest:
+    hmac-secret: ${VIGIL_HMAC_SECRET:dev-secret-change-me}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
