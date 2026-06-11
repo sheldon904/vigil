@@ -1,0 +1,40 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: alert-api-service
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/vigil}
+    username: ${POSTGRES_USER:vigil}
+    password: ${POSTGRES_PASSWORD:vigil}
+  jpa:
+    hibernate:
+      # creates and evolves the schema automatically; fine for a demo,
+      # production would manage schema with Flyway or Liquibase migrations
+      ddl-auto: update
+    open-in-view: false
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: alert-api-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: io.vigil.common.model
+        spring.json.value.default.type: io.vigil.common.model.Alert
+        spring.json.use.type.headers: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
