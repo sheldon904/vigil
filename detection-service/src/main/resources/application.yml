@@ -1,0 +1,52 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: detection-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: detection-service
+      # on first start, read the topic from the beginning so nothing is missed
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # ErrorHandlingDeserializer catches poison messages instead of looping on them
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: io.vigil.common.model
+        spring.json.value.default.type: io.vigil.common.model.SecurityEvent
+        spring.json.use.type.headers: false
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        spring.json.add.type.headers: false
+
+vigil:
+  detection:
+    # do not re-alert for the same rule and source more often than this
+    suppression: 60s
+    # how long the in-memory window store keeps events
+    retention: 10m
+    brute-force:
+      threshold: 5
+      window: 60s
+    port-scan:
+      distinct-ports: 15
+      window: 30s
+    impossible-travel:
+      window: 5m
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
