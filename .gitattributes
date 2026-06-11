@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# The Maven wrapper shell script must stay LF so it runs on Linux (CI, Docker)
+mvnw text eol=lf
+*.cmd text eol=crlf
