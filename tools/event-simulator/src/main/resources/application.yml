@@ -1,0 +1,17 @@
+spring:
+  main:
+    # a CLI, not a server: run the CommandLineRunner and exit
+    web-application-type: none
+  application:
+    name: event-simulator
+
+vigil:
+  simulator:
+    ingest-url: ${INGEST_URL:http://localhost:8081/events}
+    hmac-secret: ${VIGIL_HMAC_SECRET:dev-secret-change-me}
+    benign-events: 60
+
+logging:
+  level:
+    root: warn
+    io.vigil: info
