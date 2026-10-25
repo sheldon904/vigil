@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.common.model.EventType;
 import io.vigil.common.model.SecurityEvent;
 import io.vigil.ingest.kafka.EventPublisher;
@@ -20,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Standalone MockMvc test: exercises the controller and its JSON handling
@@ -34,8 +35,8 @@ class EventControllerTest {
     @BeforeEach
     void setUp() {
         publisher = mock(EventPublisher.class);
-        // findAndRegisterModules picks up the java.time module so Instant parses
-        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+        // Jackson 3 supports java.time types out of the box, so Instant parses
+        ObjectMapper objectMapper = JsonMapper.builder().build();
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new EventController(publisher, objectMapper))
                 .setControllerAdvice(new ApiExceptionHandler())

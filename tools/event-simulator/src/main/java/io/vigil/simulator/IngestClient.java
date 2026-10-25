@@ -1,13 +1,13 @@
 package io.vigil.simulator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.common.model.SecurityEvent;
 import io.vigil.common.security.HmacSigner;
 import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Posts signed event batches to the ingest service. The signature is computed
@@ -38,7 +38,7 @@ public class IngestClient {
                     .body(body)
                     .retrieve()
                     .toBodilessEntity();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("failed to serialize events", e);
         }
     }

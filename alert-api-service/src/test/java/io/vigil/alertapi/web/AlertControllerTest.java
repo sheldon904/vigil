@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.alertapi.service.AlertQueryService;
 import io.vigil.common.model.Alert;
 import io.vigil.common.model.Severity;
@@ -22,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -44,9 +43,8 @@ class AlertControllerTest {
     @BeforeEach
     void setUp() {
         queryService = mock(AlertQueryService.class);
-        // register the java.time module so Instant fields serialize in tests
-        var jsonConverter = new MappingJackson2HttpMessageConverter(
-                new ObjectMapper().findAndRegisterModules());
+        // Jackson 3 serializes java.time types such as Instant out of the box
+        var jsonConverter = new JacksonJsonHttpMessageConverter();
         mockMvc = MockMvcBuilders.standaloneSetup(new AlertController(queryService))
                 .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
                 .setMessageConverters(jsonConverter)
