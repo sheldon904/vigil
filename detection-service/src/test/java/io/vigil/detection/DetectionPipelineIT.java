@@ -2,7 +2,6 @@ package io.vigil.detection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.common.kafka.Topics;
 import io.vigil.common.model.Alert;
 import io.vigil.common.model.EventType;
@@ -25,6 +24,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration test of the Kafka publish-and-consume path against a real
@@ -44,7 +45,7 @@ class DetectionPipelineIT {
     @Autowired
     private KafkaTemplate<String, SecurityEvent> kafkaTemplate;
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private final ObjectMapper objectMapper = JsonMapper.builder().build();
 
     @Test
     void bruteForceBurstOnEventsRawProducesAnAlertOnAlertsTopic() throws Exception {

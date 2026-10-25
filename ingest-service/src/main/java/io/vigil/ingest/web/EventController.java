@@ -1,8 +1,5 @@
 package io.vigil.ingest.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.common.model.SecurityEvent;
 import io.vigil.ingest.kafka.EventPublisher;
 import java.util.ArrayList;
@@ -13,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Ingestion endpoint. Accepts one security event or a JSON array of them,
@@ -32,8 +31,7 @@ public class EventController {
     }
 
     @PostMapping(path = "/events", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> ingest(@RequestBody JsonNode body)
-            throws JsonProcessingException {
+    public ResponseEntity<Map<String, Object>> ingest(@RequestBody JsonNode body) {
         List<SecurityEvent> events = parse(body);
         for (SecurityEvent event : events) {
             publisher.publish(event.withGeneratedIdIfMissing());
@@ -42,7 +40,7 @@ public class EventController {
     }
 
     /** Accepts either a single event object or an array of events. */
-    private List<SecurityEvent> parse(JsonNode body) throws JsonProcessingException {
+    private List<SecurityEvent> parse(JsonNode body) {
         List<SecurityEvent> events = new ArrayList<>();
         if (body.isArray()) {
             for (JsonNode node : body) {
@@ -57,7 +55,7 @@ public class EventController {
         return events;
     }
 
-    private SecurityEvent toEvent(JsonNode node) throws JsonProcessingException {
+    private SecurityEvent toEvent(JsonNode node) {
         SecurityEvent event = objectMapper.treeToValue(node, SecurityEvent.class);
         if (event.source() == null || event.source().isBlank()) {
             throw new IllegalArgumentException("event is missing required field: source");

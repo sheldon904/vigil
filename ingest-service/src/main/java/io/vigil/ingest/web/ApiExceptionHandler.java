@@ -1,12 +1,12 @@
 package io.vigil.ingest.web;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.core.JacksonException;
 
 /**
  * Translates expected failures into clean 400 responses instead of stack
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
-    @ExceptionHandler({IllegalArgumentException.class, JsonProcessingException.class,
+    @ExceptionHandler({IllegalArgumentException.class, JacksonException.class,
             HttpMessageNotReadableException.class})
     public ResponseEntity<Map<String, String>> badRequest(Exception e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)

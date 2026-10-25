@@ -3,7 +3,6 @@ package io.vigil.alertapi;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vigil.alertapi.model.AlertDocument;
 import io.vigil.alertapi.repo.AlertRepository;
 import io.vigil.alertapi.service.AlertQueryService;
@@ -20,17 +19,19 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.http.ResponseEntity;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Integration test of the persistence path against real infrastructure:
@@ -39,6 +40,7 @@ import org.testcontainers.utility.DockerImageName;
  * queryable in Postgres through the REST API and indexed in Elasticsearch.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureTestRestTemplate
 @Testcontainers
 class AlertPersistenceIT {
 
@@ -48,13 +50,13 @@ class AlertPersistenceIT {
 
     @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
+    static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16-alpine");
 
     @Container
     @ServiceConnection
     static ElasticsearchContainer elasticsearch =
             new ElasticsearchContainer(DockerImageName
-                    .parse("docker.elastic.co/elasticsearch/elasticsearch:8.17.0"))
+                    .parse("docker.elastic.co/elasticsearch/elasticsearch:9.2.8"))
                     .withEnv("xpack.security.enabled", "false")
                     .withEnv("ES_JAVA_OPTS", "-Xms256m -Xmx256m");
 
@@ -83,7 +85,7 @@ class AlertPersistenceIT {
                 Map.of("failureCount", "5"));
 
         // produce the alert as JSON the same way the detection service does
-        String json = new ObjectMapper().findAndRegisterModules().writeValueAsString(alert);
+        String json = JsonMapper.builder().build().writeValueAsString(alert);
         Map<String, Object> producerProps = Map.of(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers(),
                 ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class,
